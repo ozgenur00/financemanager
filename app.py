@@ -291,20 +291,33 @@ def registration():
 
     if form.validate_on_submit():
         try:
-           user = User.signup(
-               first_name=form.first_name.data,
-               last_name=form.last_name.data,
-               username=form.username.data,
-               email=form.email.data,
-               password=form.password.data,
-           ) 
-           db.session.commit()
-           do_login(user)
-           flash("Welcome Back!", "success")
-           return redirect(url_for('after_login'))
-        except IntegrityError:
+            existing_user = User.query.filter(
+                (User.email == form.email.data) | (User.username == form.username.data)
+            ).first()
+
+            if existing_user:
+                flash("Email or username already taken. Please choose another.", "danger")
+                return render_template('signup.html', form=form)
+
+            user = User.signup(
+                first_name=form.first_name.data,
+                last_name=form.last_name.data,
+                username=form.username.data,
+                email=form.email.data,
+                password=form.password.data,
+            )
+            db.session.commit()
+            
+            if user:
+                do_login(user)
+                flash("Welcome!", "success")
+                return redirect(url_for('after_login'))
+            else:
+                flash("Signup failed. Please try again.", "danger")
+                return render_template('signup.html', form=form)
+        except IntegrityError as e:
             db.session.rollback()
-            flash("Username already taken", "danger")
+            flash(f"An error occurred: {str(e)}", "danger")
             return render_template('signup.html', form=form)
     else:
         return render_template('signup.html', form=form)
