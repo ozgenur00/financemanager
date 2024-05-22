@@ -89,7 +89,12 @@ class User(db.Model):
         db.session.add(user)
         try:
             db.session.commit()
-        except IntegrityError:
+        except IntegrityError as e:
+            print(f"IntegrityError during signup: {e.orig}")
+            db.session.rollback()
+            return None
+        except Exception as e:
+            print(f"Exception during signup: {e}")
             db.session.rollback()
             return None
         return user

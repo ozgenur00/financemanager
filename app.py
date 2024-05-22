@@ -54,6 +54,7 @@ def do_login(user):
     """Log in user."""
 
     session[CURR_USER_KEY] = user.id
+    g.user = user
 
 
 def do_logout():
@@ -298,12 +299,13 @@ def registration():
                password=form.password.data,
            ) 
            db.session.commit()
+           do_login(user)
+           flash("Welcome Back!", "success")
+           return redirect(url_for('after_login'))
         except IntegrityError:
+            db.session.rollback()
             flash("Username already taken", "danger")
             return render_template('signup.html', form=form)
-        
-        do_login(user)
-        return redirect(url_for('after_login'))
     else:
         return render_template('signup.html', form=form)
 

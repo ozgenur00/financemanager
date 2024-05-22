@@ -43,7 +43,7 @@ class TransactionForm(FlaskForm):
     description = StringField('Description', validators=[Optional()])
     amount = DecimalField('Amount', validators=[DataRequired(), NumberRange(min=0, message="Amount cannot be negative.")])
     date = DateField('Date', validators=[DataRequired()])
-    account_id = SelectField('Account', coerce=int, validators=[InputRequired()], choices=[])
+    account_id = SelectField('Account', coerce=int, validators=[DataRequired()], choices=[])
 
 class GoalCreationForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
