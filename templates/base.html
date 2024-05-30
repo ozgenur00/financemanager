@@ -34,13 +34,27 @@
             </div>
         </div>
     </nav>
+    
 
     <div class="container mt-4">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+          {% if messages %}
+            {% for category, message in messages %}
+              <div class="alert alert-{{ category }}">{{ message }}</div>
+            {% endfor %}
+          {% endif %}
+        {% endwith %}
+        
         {% block content %}
         {% endblock %}
     </div>
 
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        function confirmDeletion() {
+            return confirm("Are you sure you want to delete?");
+        }
+    </script>
 </body>
 </html>
 

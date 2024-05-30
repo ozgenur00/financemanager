@@ -32,7 +32,7 @@ CURR_USER_KEY = "user_id"
 migrate = Migrate(app, db)
 
 
-toolbar = DebugToolbarExtension(app)
+# toolbar = DebugToolbarExtension(app)
 
 # Connect the database to the Flask app
 connect_db(app)
@@ -470,6 +470,11 @@ def setbudget():
             flash("Error setting budget.", "danger")
             print(e)
 
+    else:
+        for field, errors in form.errors.items():
+            for error in errors:
+                flash(f"Error in {getattr(form, field).label.text}: {error}", 'danger')
+
 
     return render_template('forms-templates/set-budget.html', form=form)
 
@@ -549,6 +554,8 @@ def transactions():
         return redirect(url_for('login'))
     user_id = session['user_id']
     user_transactions = Transactions.query.filter_by(user_id=user_id).all()
+    for transaction in user_transactions:
+        print(f"Transaction in view: {transaction.description}, Amount: {transaction.amount}")
 
     return render_template('mainpages/transactions.html', transactions=user_transactions)
 
@@ -613,4 +620,107 @@ def delete_transaction(transaction_id):
     db.session.commit()
     flash("Transaction deleted successfully.", "success")
     return redirect(url_for('transactions'))
+
+
+#####Editing goals, transactions, budgets, accounts############
+@app.route('/goal/edit/<int:goal_id>', methods=["GET", "POST"])
+def edit_goal(goal_id):
+    if 'user_id' not in session:
+        flash("You must be logged in to perform this action.", "warning")
+        return redirect(url_for('login'))
+    
+    goal_to_edit = Goals.query.get_or_404(goal_id)
+    if goal_to_edit.user_id != session['user_id']:
+        flash("You do not have permission to edit this goal.", "danger")
+        return redirect(url_for('goals'))
+    
+    form = GoalCreationForm(obj=goal_to_edit)
+
+    if form.validate_on_submit():
+        goal_to_edit.name = form.name.data
+        goal_to_edit.target_amount = form.target_amount.data
+        db.session.commit()
+        flash("Goal updated successfully.", "success")
+        return redirect(url_for('goals'))
+    
+    return render_template('forms-templates/edit-goal.html', form=form, goal=goal_to_edit)
+
+@app.route('/transaction/edit/<int:transaction_id>', methods=["GET", "POST"])
+def edit_transaction(transaction_id):
+    if 'user_id' not in session:
+        flash("You must be logged in to perform this action.", "danger")
+        return redirect(url_for('login'))
+    
+    transaction_to_edit = Transactions.query.get_or_404(transaction_id)
+    if transaction_to_edit.user_id != session['user_id']:
+        flash("You don't have permission to edit this transaction.", "danger")
+        return redirect(url_for('transactions'))
+    
+    form = TransactionForm(obj=transaction_to_edit)
+
+
+    form.account_id.choices = [(account.id, account.name) for account in Accounts.query.all()]
+    form.category.choices = [(category.id, category.name) for category in Category.query.all()]
+
+    if form.validate_on_submit():
+        transaction_to_edit.account_id = form.account_id.data
+        transaction_to_edit.type = form.type.data
+        transaction_to_edit.description = form.description.data
+        transaction_to_edit.amount = form.amount.data
+        transaction_to_edit.date = form.date.data
+        transaction_to_edit.category_id = form.category.data if form.type.data == 'expense' else None
+        db.session.commit()
+        flash("Transaction updated successfully.", "success")
+        return redirect(url_for('transactions'))
+
+    return render_template('forms-templates/edit-transaction.html', form=form, transaction=transaction_to_edit)
+
+@app.route('/account/edit/<int:account_id>', methods=["GET", "POST"])
+def edit_account(account_id):
+    if 'user_id' not in session:
+        flash("You must be logged in to perform this action", "danger")
+        return redirect(url_for('login'))
+    
+    account_to_edit = Accounts.query.get_or_404(account_id)
+    if account_to_edit.user_id != session['user_id']:
+        flash("You don't have permission to edit this account", "danger")
+        return redirect(url_for('accounts'))
+    
+    form = AccountCreationForm(obj=account_to_edit)
+
+    if form.validate_on_submit():
+        account_to_edit.name = form.name.data
+        account_to_edit.account_type = form.account_type.data
+        account_to_edit.balance = form.balance.data
+        db.session.commit()
+        flash("Account updated successfully.", "success")
+        return redirect(url_for('accounts'))
+    
+    return render_template('forms-templates/edit-account.html', form=form, account=account_to_edit)
+
+@app.route('/budget/edit/<int:budget_id>', methods=["GET", "POST"])
+def edit_budget(budget_id):
+    if 'user_id' not in session:
+        flash("You must be logged in to perform this action", "danger")
+        return redirect(url_for('login'))
+    
+    budget_to_edit = Budgets.query.get_or_404(budget_id)
+    if budget_to_edit.user_id != session['user_id']:
+        flash("You don't have permission to edit this budget.", "danger")
+        return redirect(url_for('budgets'))
+    
+    form = BudgetCreationForm(obj=budget_to_edit)
+
+    form.category.choices = [(category.id, category.name) for category in Category.query.all()]
+
+    if form.validate_on_submit():
+        budget_to_edit.category_id = form.category.data
+        budget_to_edit.amount = form.amount.data
+        budget_to_edit.start_date = form.start_date.data
+        budget_to_edit.end_date = form.end_date.data
+        db.session.commit()
+        return redirect(url_for('budgets'))
+    
+    return render_template('forms-templates/edit-budget.html', form=form, budget=budget_to_edit)
+
     

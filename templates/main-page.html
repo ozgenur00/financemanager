@@ -4,13 +4,7 @@
 
 {% block content %}
 
-{% with messages = get_flashed_messages(with_categories=true) %}
-  {% if messages %}
-    {% for category, message in messages %}
-      <div class="alert alert-{{ category }}">{{ message }}</div>
-    {% endfor %}
-  {% endif %}
-{% endwith %}
+
 <div class="text-center" style="margin-top: 50px;">
   <h1>Wealth Watcher</h1>
   <p>Manage your finances easily and efficiently.</p>

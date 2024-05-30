@@ -4,6 +4,7 @@ from models import User, Accounts, Transactions, Budgets, Goals, Category
 from datetime import datetime
 from werkzeug.security import generate_password_hash
 from decimal import Decimal
+from seed import seed_database
 
 class TestApp(unittest.TestCase):
 
@@ -249,11 +250,16 @@ class TestApp(unittest.TestCase):
         with self.client:
             self.client.post('/login', data=dict(
                 email="john@example.com",
-                password="testpassword"
+                password="testpassword" 
             ), follow_redirects=True)
+
+            transaction = Transactions.query.filter_by(description='Supermarket shopping').first()
+            print(f"Transaction found: {transaction}")
 
             response = self.client.get('/transaction')
             self.assertEqual(response.status_code, 200)
+            print(response.data.decode())  
+
             self.assertIn(b'Supermarket shopping', response.data)
 
     def test_delete_account(self):

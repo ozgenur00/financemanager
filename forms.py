@@ -2,6 +2,14 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, PasswordField, SelectField, DecimalField, DateField, validators, ValidationError
 from wtforms.validators import DataRequired, Email, Length, Optional, InputRequired, NumberRange
 
+def validate_balance(form, field):
+    if field.data < 0:
+        raise ValidationError("Balance cannot be negative.")
+    elif field.data == 0:
+        raise ValidationError("Balance cannot be 0.")
+    elif field.data > 9999999:
+        raise ValidationError("Balance cannot be more than 9999999.")
+
 class RegistrationForm(FlaskForm):
     first_name = StringField('First Name', validators=[DataRequired()])
     last_name = StringField('Last Name', validators=[DataRequired()])
@@ -23,11 +31,11 @@ class UserLoginForm(FlaskForm):
 class AccountCreationForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
     account_type = SelectField('Account Type', choices=[('savings', 'Savings'), ('checking', 'Checking')], validators=[DataRequired()])
-    balance = DecimalField('Balance', validators=[DataRequired(), NumberRange(min=0, message="Balance cannot be negative.")])
+    balance = DecimalField('Balance', validators=[DataRequired(), validate_balance])
 
 class BudgetCreationForm(FlaskForm):
     category = SelectField('Category', validators=[DataRequired()])
-    amount = DecimalField('Amount', validators=[DataRequired(), NumberRange(min=0, message="Amount cannot be negative.")])
+    amount = DecimalField('Amount', validators=[DataRequired(), validate_balance])
     start_date = DateField('Start Date', validators=[DataRequired()])
     end_date = DateField('End Date', validators=[DataRequired()])
 
@@ -41,10 +49,10 @@ class TransactionForm(FlaskForm):
     type = SelectField('Type', choices=type_choices, validators=[DataRequired()])
     category = SelectField('Category', choices=[], validators=[DataRequired()])
     description = StringField('Description', validators=[Optional()])
-    amount = DecimalField('Amount', validators=[DataRequired(), NumberRange(min=0, message="Amount cannot be negative.")])
+    amount = DecimalField('Amount', validators=[DataRequired(), validate_balance])
     date = DateField('Date', validators=[DataRequired()])
     account_id = SelectField('Account', coerce=int, validators=[DataRequired()], choices=[])
 
 class GoalCreationForm(FlaskForm):
     name = StringField('Name', validators=[DataRequired()])
-    target_amount = DecimalField('Target Amount', validators=[DataRequired(), NumberRange(min=0, message="Target amount cannot be negative.")])
+    target_amount = DecimalField('Target Amount', validators=[DataRequired(), validate_balance])
