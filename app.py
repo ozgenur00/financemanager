@@ -633,7 +633,6 @@ def delete_transaction(transaction_id):
     db.session.commit()
     flash("Transaction deleted successfully.", "success")
     return redirect(url_for('transactions'))
-<<<<<<< HEAD
 
 
 #####Editing goals, transactions, budgets, accounts############
@@ -737,7 +736,4 @@ def edit_budget(budget_id):
     
     return render_template('forms-templates/edit-budget.html', form=form, budget=budget_to_edit)
 
-    
-=======
-    
->>>>>>> 6ccd1a877dd75aaa05a681f2d624a5cce756e913
+
